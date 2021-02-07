@@ -1,12 +1,24 @@
 import React, { useState } from 'react'
-import { select } from '@storybook/addon-knobs'
+import axios from 'axios'
 
-const Add = ({ addTasks, onModalClose,category }) => {
+const Eddit = ({ onModalClose, category }) => {
   const [taskInput, setTaskInput] = useState('')
   const [taskname, setTaskname] = useState('')
   const [taskPriority, setTaskPriority] = useState('')
   const [taskDescription, setTaskDescription] = useState('')
   const [taskProject, setTaskProject] = useState('')
+  const [tasks, setTasks] = useState([])
+
+  const edditTasks = (Input, Name, Priority, Description, Project, id) => {
+    axios.post(`/api/v1/tasks/${id}`, { title: taskInput })
+    setTasks(
+      tasks.map((el) =>
+        el.taskId === id
+          ? { ...el, title: Input, name: Name, description: Description, project: Project }
+          : el
+      )
+    )
+  }
   return (
     <div className="flex flex-col border-8 border-black font-bold">
       <div className="flex py-2 ">
@@ -14,6 +26,7 @@ const Add = ({ addTasks, onModalClose,category }) => {
           Заголовок
         </label>
         <input
+          value={taskInput}
           id="title"
           type="text"
           onChange={(e) => setTaskInput(e.target.value)}
@@ -25,6 +38,7 @@ const Add = ({ addTasks, onModalClose,category }) => {
           Название проекта
         </label>
         <input
+          value={taskname}
           id="name"
           type="text"
           onChange={(e) => setTaskname(e.target.value)}
@@ -35,37 +49,37 @@ const Add = ({ addTasks, onModalClose,category }) => {
         <label htmlFor="priority" className="text-black">
           Приоритет
         </label>
-        <select
-          id="<priority>"
+        <input
+          value={taskPriority}
+          id="priority"
+          type="text"
           onChange={(e) => setTaskPriority(e.target.value)}
           className="w-2/4 border border-4 border-black"
-        >
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-        </select>
+        />
       </div>
       <div className="flex py-2 ">
         <label htmlFor="project" className="text-black">
           Проект
         </label>
-        <select
-          id="<project>"
+        <input
+          value={taskProject}
+          id="project"
+          list="project"
           onChange={(e) => setTaskProject(e.target.value)}
           className="w-2/4 border border-4 border-black"
-        >
-            {
-                category.map(el=>(
-                    <option key={el.taskId}>{el.project}</option>
-                ))
-            }
-        </select>
+        />
+        <datalist id="<project>">
+          <option value="1" />
+          <option value="2" />
+          <option value="3" />
+        </datalist>
       </div>
       <div className="flex py-2 ">
         <label htmlFor="description" className="text-black">
           описание
         </label>
         <input
+          value={taskDescription}
           id="description"
           type="text"
           onChange={(e) => setTaskDescription(e.target.value)}
@@ -75,7 +89,9 @@ const Add = ({ addTasks, onModalClose,category }) => {
       <div className="flex justify-between">
         <button
           type="button"
-          onClick={() => addTasks(taskInput, taskname, taskPriority, taskDescription, taskProject)}
+          onClick={() =>
+            edditTasks(taskInput, taskname, taskPriority, taskDescription, taskProject)
+          }
           className="border border-black"
         >
           сохранить
@@ -88,4 +104,4 @@ const Add = ({ addTasks, onModalClose,category }) => {
   )
 }
 
-export default Add
+export default Eddit

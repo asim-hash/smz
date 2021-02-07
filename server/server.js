@@ -45,6 +45,16 @@ const middleware = [
 
 middleware.forEach((it) => server.use(it))
 
+const read = () => {
+  return readFile(`${__dirname}/tasks/tasks.json`, { encoding: 'utf8' })
+    .then((result) => {
+      return JSON.parse(result)
+    })
+    .catch(() => {
+      return []
+    })
+}
+
 const write = (tasks) => {
   return writeFile(`${__dirname}/tasks/tasks.json`, JSON.stringify(tasks, 1, 2), {
     encoding: 'utf8'
@@ -58,7 +68,18 @@ const filteredKeys = (array) => {
     if (rec._isDeleted) {
       return acc
     }
-    return [...acc, { taskId: rec.taskId, title: rec.title, status: rec.status }]
+    return [
+      ...acc,
+      {
+        taskId: rec.taskId,
+        title: rec.title,
+        name: rec.name,
+        description: rec.description,
+        priority: rec.priority,
+        project: rec.project,
+        status: rec.status
+      }
+    ]
   }, [])
 }
 
@@ -73,6 +94,9 @@ server.post('/api/v1/tasks/', async (req, res) => {
     taskId: ids.generate(),
     title: req.body.title,
     name: req.body.name,
+    priority: req.body.priority,
+    project: req.body.project,
+    description: req.body.description,
     _isDeleted: false,
     _createdAt: +new Date(),
     _deleteAt: null
@@ -81,6 +105,38 @@ server.post('/api/v1/tasks/', async (req, res) => {
   await write(addedTasks)
 
   res.json(tasks)
+})
+
+server.patch('/api/v1/tasks/:id', async (req, res) => {
+  const { id } = req.params
+  const newTaskName = req.body.name
+  const newTitle = req.body.title
+  const newPriority = req.body.priority
+  const newProject = req.body.project
+  const newDescription = req.body.description
+  const tasks = await read()
+  const updatedName = tasks.map((el) =>
+    el.taskId === id
+      ? {
+          ...el,
+          name: newTaskName,
+          title: newTitle,
+          priority: newPriority,
+          project: newProject,
+          description: newDescription
+        }
+      : el
+  )
+  await write(updatedName)
+  res.json({ status: 'updated' })
+})
+
+server.delete('/api/v1/tasks/:id', async (req, res) => {
+  const { id } = req.params
+  const tasks = await read()
+  const deleted = tasks.map((el) => (el.taskId === id ? { ...el, _isDeleted: true } : el))
+  await write(deleted)
+  res.json({ status: 'deleted' })
 })
 
 server.use('/api/', (req, res) => {
